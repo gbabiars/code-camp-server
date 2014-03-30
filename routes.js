@@ -1,5 +1,6 @@
 var Hapi = require('Hapi'),
-    sessionsHandlers = require('./handlers/sessions');
+    sessionsHandlers = require('./handlers/sessions'),
+    scrapeHandlers = require('./handlers/scrape');
 
 var notFoundHandler = function(req, reply) {
     reply(Hapi.error.notFound());
@@ -8,6 +9,8 @@ var notFoundHandler = function(req, reply) {
 module.exports = [
     { method: 'GET', path: '/api/sessions', config: { handler: sessionsHandlers.findAll } },
     { method: 'GET', path: '/api/sessions/{id}', config: { handler: sessionsHandlers.findById } },
+
+    { method: 'GET', path: '/api/scrape', config: { handler: scrapeHandlers.sessions } },
 
     { method: 'GET', path: '/api/{path*}', config: { handler: notFoundHandler } }
 ];
