@@ -1,23 +1,27 @@
-var notFound = require('Hapi').error.notFound;
+var notFound = require('Hapi').error.notFound,
+    ObjectID = require('mongodb').ObjectID;
 
 module.exports = {
     findAll: function(req, reply) {
-        req.server.app.knex('sessions')
-            .select()
-            .then(function(data) {
-                reply({
-                    sessions: data
+        var db = req.server.app.db;
+        db.collection('sessions')
+            .find({})
+            .toArray(function(err, docs) {
+                var sessions = docs.map(function(d) {
+                    d.id = d._id;
+                    delete d._id;
+                    return d;
                 });
+                reply({ sessions: sessions });
             });
     },
 
     findById: function(req, reply) {
-        req.server.app.knex('sessions')
-            .where('id', req.params.id)
-            .select()
-            .then(function(data)
-            {
-                reply(data.length > 0 ? { session: data[0] } : notFound());
+        var db = req.server.app.db;
+        db.collection('sessions')
+            .findOne({ _id: new ObjectID(req.params.id) }, function(err, session) {
+                session.id = s._id;
+                reply({ session: session });
             });
     }
 };
