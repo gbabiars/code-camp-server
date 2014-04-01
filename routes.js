@@ -10,6 +10,8 @@ module.exports = [
     { method: 'GET', path: '/api/sessions', config: { handler: sessionsHandlers.findAll } },
     { method: 'GET', path: '/api/sessions/{id}', config: { handler: sessionsHandlers.findById } },
 
+    { method: 'GET', path: '/api/tracks', config: { handler: sessionsHandlers.findAll } },
+
     { method: 'GET', path: '/api/scrape', config: { handler: scrapeHandlers.sessions } },
 
     { method: 'GET', path: '/api/{path*}', config: { handler: notFoundHandler } }
