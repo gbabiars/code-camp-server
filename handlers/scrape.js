@@ -22,7 +22,7 @@ function parseSessionsPage() {
                             status: $el.attr('class'),
                             title: $el.find('td:nth-child(3)').text(),
                             description: $el.find('td:nth-child(4) a').attr('data-content'),
-                            sessionId: $el.find('#hlSessionInfo').attr('href').replace('/session.aspx?SessionId=', '')
+                            _id: $el.find('#hlSessionInfo').attr('href').replace('/session.aspx?SessionId=', '')
                         }
                     })
                     .toArray();
@@ -53,8 +53,7 @@ function sessions(req, reply) {
 
     var db = req.server.app.db;
 
-    parseSessionsPage().then(function(categories) {
-
+    parseSessionsPage().then(function(tracks) {
 
         // store off the category data
         var tracksCollection = db.collection('tracks'),
@@ -62,20 +61,24 @@ function sessions(req, reply) {
 
         tracksCollection.remove({}, { w: 1 }, function(err, count) {
 
-            var mappedCategories = categories.map(function(c) {
-                return { name: c.name, description: c.description };
+            var mappedTracks = tracks.map(function(t) {
+                return {
+                    name: t.name,
+                    description: t.description,
+                    sessions: _.pluck(t.sessions, '_id')
+                };
             });
-            tracksCollection.insert(mappedCategories, { w: 1 }, function(err, insertedCategories) {
+            tracksCollection.insert(mappedTracks, { w: 1 }, function(err, insertedTracks) {
 
-                insertedCategories.forEach(function(c, i) {
-                    categories[i].sessions.forEach(function(s) {
-                        s.categoryId = c._id;
+                insertedTracks.forEach(function(t, i) {
+                    tracks[i].sessions.forEach(function(s) {
+                        s.trackId = t._id;
                     });
                 });
 
                 sessionsCollection.remove({}, { w: 1 }, function(err, count) {
 
-                    var flattenedSessions = _.flatten(categories, 'sessions'),
+                    var flattenedSessions = _.flatten(tracks, 'sessions'),
                         sessionDetailsPromises = [];
 
                     flattenedSessions.forEach(function(s) {
