@@ -39,7 +39,8 @@ function parseSessionsPage() {
 
 function parseSessionDetailPage(session) {
     console.log('Parsing ' + session.title);
-    return request(sessionDetailUrl + session.sessionId).then(function(data) {
+    console.log(sessionDetailUrl + session._id);
+    return request(sessionDetailUrl + session._id).then(function(data) {
         var $ = cheerio.load(data);
 
         session.room = $('#lblRoom').text();

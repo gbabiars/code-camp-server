@@ -7,6 +7,7 @@ var convertSession = function(session) {
         title: session.title,
         description: session.description,
         room: session.room,
+        time: session.time,
         status: session.status,
         track: session.trackId
     };
