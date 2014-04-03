@@ -7,9 +7,10 @@ var convertSession = function(session) {
         title: session.title,
         description: session.description,
         room: session.room,
-        time: session.time,
+        startTime: session.startTime,
+        endTime: session.endTime,
         status: session.status,
-        track: session.trackId
+        track: session.track_id
     };
 };
 
