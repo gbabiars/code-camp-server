@@ -29,14 +29,14 @@ module.exports = {
 
         var sessionsPromise = Q.ninvoke(db.collection('sessions').find({}), 'toArray')
             .then(function(docs) {
-                var sessions = docs.map(convertSession);
-                return sessions;
+                return docs.map(convertSession);
             });
 
         var tracksPromise = Q.ninvoke(db.collection('tracks').find({}), 'toArray')
             .then(function(docs) {
-                var tracks = docs.map(convertTrack);
-                return tracks;
+                return docs
+                    .filter(function(d) { return d.sessions.length > 0; })
+                    .map(convertTrack);
             });
 
         Q.all([sessionsPromise, tracksPromise]).then(function(data) {

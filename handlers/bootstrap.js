@@ -4,6 +4,19 @@ var request = require('request-promise'),
     sessionsUrl = 'http://apr2014.desertcodecamp.com/Services/CodeCamp.svc/Sessions?$format=json&$filter=Camp/ShortUrl%20eq%20%27apr2014%27&$expand=Track,Slot/Time,Slot/CampRoom/Room',
     tracksUrl = 'http://apr2014.desertcodecamp.com/Services/CodeCamp.svc/Tracks?$format=json';
 
+function parseStatus(session) {
+    var approved = session.IsApproved,
+        suggestion = session.IsSuggestion;
+
+    if(approved) {
+        return "approved";
+    }
+    if(suggestion) {
+        return "suggested";
+    }
+    return "pending";
+}
+
 function loadSessions(options) {
     return request(sessionsUrl).then(function(data) {
 
@@ -15,6 +28,7 @@ function loadSessions(options) {
             result.title = session.Name;
             result.description = session.Abstract;
             result.track_id = session.Track.TrackId;
+            result.status = parseStatus(session);
 
             if(session.Slot) {
                 result.startTime = session.Slot.Time.StartDate;
