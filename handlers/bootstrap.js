@@ -1,7 +1,7 @@
 var request = require('request-promise'),
     Q = require('q'),
     _ = require('lodash'),
-    sessionsUrl = 'http://apr2014.desertcodecamp.com/Services/CodeCamp.svc/Sessions?$format=json&$filter=Camp/ShortUrl%20eq%20%27apr2014%27&$expand=Track,Slot/Time,Slot/CampRoom/Room',
+    sessionsUrl = 'http://apr2014.desertcodecamp.com/Services/CodeCamp.svc/Sessions?$format=json&$filter=Camp/ShortUrl%20eq%20%27apr2014%27&$expand=Track,Slot/Time,Slot/CampRoom/Room,Presenters/User',
     tracksUrl = 'http://apr2014.desertcodecamp.com/Services/CodeCamp.svc/Tracks?$format=json';
 
 function parseStatus(session) {
@@ -20,6 +20,8 @@ function parseStatus(session) {
 function loadSessions(options) {
     return request(sessionsUrl).then(function(data) {
 
+        options.users = [];
+
         options.sessions = JSON.parse(data).value.map(function(session) {
 
             var result = {};
@@ -29,6 +31,10 @@ function loadSessions(options) {
             result.description = session.Abstract;
             result.track_id = session.Track.TrackId;
             result.status = parseStatus(session);
+            result.presenter_ids = session.Presenters
+                .map(function(p) {
+                    return p.User.UserId
+                });
 
             if(session.Slot) {
                 result.startTime = session.Slot.Time.StartDate;
@@ -36,9 +42,33 @@ function loadSessions(options) {
                 result.room = session.Slot.CampRoom.Room.Name;
             }
 
+            session.Presenters.forEach(function(p) {
+                var user = p.User;
+
+                var existingUser = _.find(options.users, function(u) {
+                    return user.UserId === u._id;
+                });
+
+                if(!existingUser) {
+                    options.users.push({
+                        _id: user.UserId,
+                        firstName: user.FirstName,
+                        lastName: user.LastName,
+                        biography: user.Biography,
+                        twitter: user.TwitterHandle,
+                        facebook: user.FacebookId,
+                        blog: user.BlogUrl,
+                        slideShare: user.SlideShareId,
+                        speakerRate: user.SpeakerRateId
+                    });
+                }
+            });
+
             return result;
 
         });
+
+        console.log(options.users.length);
 
         return options;
 
@@ -59,6 +89,21 @@ function saveSessions(options) {
 
     });
 
+}
+
+function saveUsers(options) {
+    var usersCollection = options.db.collection('users');
+
+    return Q.Promise(function(resolve) {
+
+        usersCollection.remove({}, { w: 1 }, function() {
+            console.log(options.users.length);
+            usersCollection.insert(options.users, { w: 1 }, function() {
+                resolve(options);
+            });
+        });
+
+    });
 }
 
 function loadTracks(options) {
@@ -119,13 +164,15 @@ function load(req, reply) {
 
     loadSessions(options)
         .then(saveSessions)
+        .then(saveUsers)
         .then(loadTracks)
         .then(fixupTracks)
         .then(saveTracks)
         .then(function(options) {
             reply({
                 sessions: options.sessions,
-                tracks: options.tracks
+                tracks: options.tracks,
+                users: options.users
             });
         });
 
