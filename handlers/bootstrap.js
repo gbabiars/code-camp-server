@@ -59,16 +59,17 @@ function loadSessions(options) {
                         facebook: user.FacebookId,
                         blog: user.BlogUrl,
                         slideShare: user.SlideShareId,
-                        speakerRate: user.SpeakerRateId
+                        speakerRate: user.SpeakerRateId,
+                        session_ids: [session.SessionId]
                     });
+                } else {
+                    existingUser.session_ids.push(session.SessionId);
                 }
             });
 
             return result;
 
         });
-
-        console.log(options.users.length);
 
         return options;
 
@@ -97,7 +98,6 @@ function saveUsers(options) {
     return Q.Promise(function(resolve) {
 
         usersCollection.remove({}, { w: 1 }, function() {
-            console.log(options.users.length);
             usersCollection.insert(options.users, { w: 1 }, function() {
                 resolve(options);
             });

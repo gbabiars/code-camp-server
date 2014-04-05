@@ -33,7 +33,8 @@ function convertUser(user) {
         facebook: user.facebook,
         blog: user.blog,
         speakerRate: user.speakerRate,
-        slideShare: user.slideShare
+        slideShare: user.slideShare,
+        sessions: user.session_ids
     }
 }
 
